@@ -1,20 +1,18 @@
 <template>
-  <section class="container">
-    <div>
-      <v-loader v-if="loading"></v-loader>
-      <b-container v-if="!loading && !waitingForBGG" class="bv-example-row">
-        <b-row>
-          <b-col>
-            <v-filters></v-filters>
-            <v-actions></v-actions>
-            <v-table :games="items" :default-sort="'wishlistpriority'" :headers="tableHeader" v-if="views.listView"></v-table>
-            <v-grid :games="items" v-if="!views.listView"></v-grid>
-          </b-col>
-        </b-row>
-      </b-container>
-      <v-refresh :message="errorMessage" v-if="waitingForBGG"></v-refresh>
+  <b-container fluid>
+    <v-loader v-if="loading"></v-loader>
+    <div v-if="!loading && !waitingForBGG">
+      <b-row>
+        <b-col>
+          <v-filters></v-filters>
+          <v-actions></v-actions>
+          <v-table :games="items" sortBy="wishlistpriority" :headers="tableHeader" v-if="views.listView"></v-table>
+          <v-grid :games="items" v-if="!views.listView"></v-grid>
+        </b-col>
+      </b-row>
     </div>
-  </section>
+    <v-refresh :message="errorMessage" v-if="waitingForBGG"></v-refresh>
+  </b-container>
 </template>
 
 <script>
@@ -111,7 +109,8 @@ export default {
         {key: 'weight', value: 'Weight'},
         {key: 'playingtime', value: 'Length'},
         {key: 'bggbestplayers', value: 'Best #Player'},
-        {key: 'wishlistpriority', value: 'Priority'}
+        {key: 'wishlistpriority', value: 'Priority'},
+        {key: 'mech', value: 'Mechanisms'}
       ],
       userId: cookie.get('username'),
       views: this.$store.state.views,

@@ -1,24 +1,22 @@
 <template>
-  <section class="container">
-    <div>
-      <v-loader v-if="loading"></v-loader>
-      <b-container v-if="!loading && !waitingForBGG" class="bv-example-row">
-        <b-row>
-          <b-col>
-            <v-filters showOwned></v-filters>
-            <v-actions></v-actions>
-          </b-col>
-        </b-row>
-        <b-row>
-          <b-col>
-            <v-table :games="items" :headers="tableHeader" v-if="views.listView"></v-table>
-            <v-grid :games="items" v-if="!views.listView"></v-grid>
-          </b-col>
-        </b-row>
-      </b-container>
-      <v-refresh :message="errorMessage" v-if="waitingForBGG"></v-refresh>
+  <b-container fluid>
+    <v-loader v-if="loading"></v-loader>
+    <div v-if="!loading && !waitingForBGG">
+      <b-row>
+        <b-col>
+          <v-filters showOwned></v-filters>
+          <v-actions></v-actions>
+        </b-col>
+      </b-row>
+      <b-row>
+        <b-col>
+          <v-table :games="items" :headers="tableHeader" v-if="views.listView"></v-table>
+          <v-grid :games="items" v-if="!views.listView"></v-grid>
+        </b-col>
+      </b-row>
     </div>
-  </section>
+    <v-refresh :message="errorMessage" v-if="waitingForBGG"></v-refresh>
+  </b-container>
 </template>
 
 <script>
@@ -125,15 +123,3 @@ export default {
   }
 }
 </script>
-
-<style>
-.container {
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-
-.filters .col-sm-auto {
-  padding-bottom: 0.25rem;
-}
-</style>

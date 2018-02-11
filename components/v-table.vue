@@ -1,27 +1,38 @@
 <template>
   <div>
-    <table class="table table-striped" v-if="games">
-      <thead>
-        <tr>
-          <th scope="col" v-for="header in headers" @click="sort(header.key)" :class="[header.key]" v-if="!header.hide" :key="header.key">
-            <span>
-              {{header.value}}
-              <i class="fa" aria-hidden="true" v-if="sortBy === header.key" :class="{'fa-arrow-down': !asc, 'fa-arrow-up': asc}"></i>
-            </span>
-          </th>
-        </tr>
-      </thead>
+    <b-table
+      @sort-changed="sort"
+      :sort-by.sync="sortBy"
+      :sort-desc.sync="isDescending"
+      :no-local-sorting="true"
+      :items="filteredGames"
+      :fields="fields"
+      responsive="md"
+      striped
+      v-if="games"
+    >
+      <template slot="imageUrl" slot-scope="data">
+        <b-img width="75" :src="data.item.imageUrl" />
+      </template>
+      <template slot="average" slot-scope="data">
+        <span class="badge" :class="['badge-' + getRatingColor(data.item.average, true)]">{{data.item.average | number}}</span>
+      </template>
+      <template slot="rating" slot-scope="data">
+        <span class="badge" :class="['badge-' + getRatingColor(data.item.rating, true)]">{{data.item.rating | number}}</span>
+      </template>
+      <template slot="name" slot-scope="data">
+        <a :href="'https://boardgamegeek.com/boardgame/' + data.item.id">{{data.item.name}}</a>
+      </template>
+      <template slot="weight" slot-scope="data">
+        <span class="badge" :class="['badge-' + getWeightColor(data.item.weight)]">{{data.item.weight | number}}</span>
+      </template>
+      <template slot="mech" slot-scope="data">
+        <ul>
+          <li v-for="mechanism in data.item.mech">{{mechanism}}</li>
+        </ul>
+      </template>
       <tbody>
         <tr v-for="item in filteredGames" :key="item.id">
-          <td v-if="hasHeader('', true)">
-            <a :href="'https://boardgamegeek.com/boardgame/' + item.id">
-              <b-img width="75" :src="item.imageUrl"/>
-            </a>
-          </td>
-          <td v-if="hasHeader('rank')">{{item.rank}}</td>
-          <td v-if="hasHeader('average')">
-            <span class="badge" :class="['badge-' + getRatingColor(item.average, true)]">{{item.average | number}}</span>
-          </td>
           <td v-if="hasHeader('rating') && singleUser">
             <span v-if="item.users[userId].rating" class="badge" :class="['badge-' + getRatingColor(item.users[userId].rating)]">{{item.users[userId].rating}}</span>
           </td>
@@ -30,9 +41,6 @@
               {{item.rating | number}}
             </span>
             <i class="fa fa-users" aria-hidden="true"  v-if="item.rating" v-b-popover.hover="getUserRatings(item.users)" title="Individual Ratings"></i>
-          </td>
-          <td class="name" v-if="hasHeader('name')">
-            <a :href="'https://boardgamegeek.com/boardgame/' + item.id">{{item.name}}</a>
           </td>
           <td class="date" v-if="hasHeader('date')">
             <a>{{item.date}}</a>
@@ -60,7 +68,7 @@
           </td>
         </tr>
       </tbody>
-    </table>
+    </b-table>
     Item count: {{filteredGames.length}}
   </div>
 </template>
@@ -73,16 +81,17 @@ var _ = require('lodash')
 export default {
   computed: {
     filteredGames: function () {
-      let games = filterItems(this.games, this.$store.state.filters)
+      const games = filterItems(this.games, this.$store.state.filters)
       if (games.length) {
-        let temp = _.orderBy(games, [this.sortBy, 'average'], [this.asc ? 'asc' : 'desc', 'desc'])
-        if (temp.length > 0 &&
-            (!_.get(temp[0], 'rank') && _.get(temp[temp.length - 1], 'rank'))) {
-          while (!_.get(temp[0], 'rank')) {
-            temp.push(temp.shift())
+        const orderedGames = _.orderBy(games, [this.sortBy, 'average'], [this.isDescending ? 'desc' : 'asc', 'desc'])
+        const firstrank = _.get(orderedGames, `0.rank`)
+        const lastrank = _.get(orderedGames, `${orderedGames.length - 1}.rank`)
+        if (orderedGames.length > 0 && (!firstrank && lastrank)) {
+          while (!_.get(orderedGames[0], 'rank')) {
+            orderedGames.push(orderedGames.shift())
           }
         }
-        games = temp
+        return orderedGames
       }
       return games
     }
@@ -98,9 +107,82 @@ export default {
   data () {
     return {
       asc: true,
+      isDescending: false,
       singleUser: true,
-      sortBy: this.defaultSort || 'rank',
-      userId: undefined
+      userId: undefined,
+      fields: [
+        {
+          key: 'imageUrl',
+          tdClass: 'imageUrl',
+          label: ' '
+        }, this.hasHeader('rank') ? {
+          sortable: true,
+          key: 'rank',
+          tdClass: 'rank'
+        } : null, this.hasHeader('rating') ? {
+          sortable: true,
+          key: 'average',
+          tdClass: 'average',
+          label: 'Avg. Rating'
+        } : null, this.hasHeader('rating') ? {
+          sortable: true,
+          key: 'rating',
+          tdClass: 'rating'
+        } : null, this.hasHeader('name') ? {
+          sortable: true,
+          key: 'name',
+          tdClass: 'name'
+        } : null, this.hasHeader('date') ? {
+          sortable: true,
+          key: 'date',
+          tdClass: 'date'
+        } : null, this.hasHeader('weight') ? {
+          sortable: true,
+          key: 'weight',
+          tdClass: 'weight'
+        } : null, this.hasHeader('playingtime') ? {
+          sortable: true,
+          key: 'playingtime',
+          label: 'Length',
+          tdClass: 'length',
+          formatter: playingtime => `${playingtime} mins`
+        } : null, this.hasHeader('bggbestplayers') ? {
+          sortable: true,
+          key: 'bggbestplayers',
+          tdClass: 'bestplayers',
+          label: 'Best # players',
+          formatter: bestplayers => bestplayers || ''
+        } : null, this.hasHeader('numplays') ? {
+          sortable: true,
+          key: 'numplays',
+          tdClass: 'numplays',
+          label: 'Plays'
+        } : null, this.hasHeader('mech') ? {
+          sortable: false,
+          key: 'mech',
+          tdClass: 'mech',
+          label: 'Mechanisms'
+        } : null, this.hasHeader('wishlistpriority') ? {
+          sortable: true,
+          key: 'wishlistpriority',
+          tdClass: 'wishlistpriority',
+          label: 'Priority',
+          formatter: value => {
+            switch (value) {
+              case '1':
+                return 'Must have'
+              case '2':
+                return 'Love to have'
+              case '3':
+                return 'Like to have'
+              case '4':
+                return 'Thinking about it'
+              default:
+                return "Don't buy this"
+            }
+          }
+        } : null
+      ].filter(i => !!i)
     }
   },
   filters: {
@@ -175,50 +257,30 @@ export default {
         this.asc = !this.asc
       } else {
         this.asc = true
-        this.sortBy = key
+        this.sortBy = key.sortBy
       }
     }
   },
   props: {
     defaultSort: {type: String},
     extFilters: { type: Object },
-    games: { type: Object },
-    headers: { type: Array }
+    games: { type: Array },
+    headers: { type: Array },
+    sortBy: {
+      type: String,
+      default: 'rank'
+    }
   }
 }
 </script>
 
 <style scoped>
-.mech ul {
-  font-size: small;
-  margin-bottom: 0em;
-  text-align: left;
-}
-
 .comment {
   text-align: left;
 }
 
-.rank, .numplays {
-  min-width: 5rem;
-}
-
-.playingtime, .weight, .wishlist-priority {
-  min-width: 6rem;
-}
-
-.average, .rating {
-  min-width: 8rem;
-}
-
-.bggbestplayers {
-  /* min-width: 9rem; */
-}
-
-.rec-player, .best-player {
-  max-width: 4rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.table th {
+  text-align: center;
 }
 
 .table td, .table th {
@@ -230,15 +292,15 @@ export default {
 }
 
 .table td {
-  vertical-align: inherit;
+  vertical-align: middle !important;
 }
 
-.name a:hover {
+.name a {
   text-decoration: none;
 }
 
 .badge {
-  font-size: 100%;
+  font-size: 1rem;
 }
 
 .badge-10 {

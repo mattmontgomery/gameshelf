@@ -113,10 +113,7 @@ const mechKeys = require('~/assets/mechKey.json')
 export default {
   data () {
     return {
-      mechHide: [],
-      mechShow: [],
       mechOptions: this.getMechOptions(),
-      showexp: cookie.get('showexp'),
       popoverShow: false
     }
   },
@@ -150,9 +147,6 @@ export default {
     }
   },
   props: {
-    filters: {
-      type: Object
-    },
     bestnum: {
       type: Number
     },
@@ -169,13 +163,18 @@ export default {
       type: Number
     },
     mechShow: {
-      type: Array
+      type: Array,
+      default: () => []
     },
     mechHide: {
-      type: Array
+      type: Array,
+      default: () => []
     },
     ownedgames: {
       type: Boolean
+    },
+    placement: {
+      type: String
     },
     playlessthan: {
       type: Number
@@ -185,7 +184,7 @@ export default {
     },
     showexp: {
       default: cookie.get('showexp'),
-      type: Boolean
+      type: String
     },
     showOwned: {
       type: Boolean

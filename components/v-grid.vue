@@ -29,7 +29,6 @@ export default {
             temp.push(temp.shift())
           }
         }
-
         games = temp
       }
 
@@ -37,7 +36,7 @@ export default {
     }
   },
   props: {
-    games: { type: Array }
+    games: { type: Object }
   }
 }
 </script>
