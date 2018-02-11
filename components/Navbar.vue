@@ -37,6 +37,7 @@ export default {
   margin-bottom: 20px;
   font-size: 14px;
   font-size: .875rem;
+  flex: 1;
 }
 a {
   color: #999;

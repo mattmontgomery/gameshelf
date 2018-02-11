@@ -282,6 +282,27 @@ export default {
 .table th {
   text-align: center;
 }
+.rank, .numplays {
+  min-width: 5rem;
+}
+
+.playingtime, .weight, .wishlist-priority {
+  min-width: 6rem;
+}
+
+.average, .rating {
+  min-width: 8rem;
+}
+
+.bggbestplayers {
+  /* min-width: 9rem; */
+}
+
+.rec-player, .best-player {
+  max-width: 4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .table td, .table th {
   padding: .25rem;
