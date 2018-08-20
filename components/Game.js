@@ -20,11 +20,13 @@ export default class {
     this.users[params.userId] = {}
     this.users[params.userId].numplays = params.numplays || 0
     this.users[params.userId].rating = params.rating || 0
+    this.users[params.userId].own = params.own
     this.numplays = params.numplays || 0
     this.rating = params.rating || 0
 
     this.average = params.average || ''
     this.date = params.date || ''
+    this.forTrade = params.forTrade
     this.id = params.id
     this.imageUrl = params.imageUrl || ''
     this.maxplayer = params.maxplayer || ''
@@ -33,6 +35,8 @@ export default class {
     this.playingtime = params.playingtime || ''
     this.rank = params.rank || ''
     this.own = params.own
+    this.wantToPlay = params.wantToPlay
+    this.wishlist = params.wishlist
     this.wishlistpriority = params.wishlistpriority
     this.comment = params.comment
   }

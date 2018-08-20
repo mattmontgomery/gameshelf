@@ -33,6 +33,7 @@
           </td>
           <td class="name" v-if="hasHeader('name')">
             <a :href="'https://boardgamegeek.com/boardgame/' + item.id">{{item.name}}</a>
+            <i class="fa fa-users" aria-hidden="true" v-if="!singleUser && getOwners(item.users)" v-b-popover.hover="getOwners(item.users)" title="Owners"></i>
           </td>
           <td class="date" v-if="hasHeader('date')">
             <a>{{item.date}}</a>
@@ -51,11 +52,12 @@
             {{item.wishlistpriority | priority}}
           </td>
           <td class="comment" v-if="hasHeader('comment')">
+            <!-- <pre>{{item.comment}}</pre> -->
             {{item.comment}}
           </td>
           <td class="mech" v-if="hasHeader('mech')">
             <ul>
-              <li v-for="item in item.mech">{{item}}</li>
+              <li v-for="item in item.mech" :key="item">{{item}}</li>
             </ul>
           </td>
         </tr>
@@ -73,8 +75,13 @@ var _ = require('lodash')
 export default {
   computed: {
     filteredGames: function () {
-      let games = filterItems(this.games, this.$store.state.filters)
-      if (games.length) {
+      let games
+      if (this.$route.name === 'latest-100-plays') {
+        games = this.games
+      } else {
+        games = filterItems(this.games, this.$store.state.filters)
+      }
+      if (_.keys(games).length) {
         let temp = _.orderBy(games, [this.sortBy, 'average'], [this.asc ? 'asc' : 'desc', 'desc'])
         if (temp.length > 0 &&
             (!_.get(temp[0], 'rank') && _.get(temp[temp.length - 1], 'rank'))) {
@@ -94,10 +101,15 @@ export default {
       this.singleUser = false
     }
     this.userId = users[0]
+    let playernames = cookie.get('playername').split(',')
+    this.playerNameMap = {}
+    for (let i = 0; i < playernames.length; i++) {
+      this.playerNameMap[users[i]] = playernames[i]
+    }
   },
   data () {
     return {
-      asc: true,
+      asc: _.get(this, 'defaultAsc', true),
       singleUser: true,
       sortBy: this.defaultSort || 'rank',
       userId: undefined
@@ -133,6 +145,19 @@ export default {
         return header ? !header.hide : false
       }
     },
+    getOwners: function (users) {
+      let text = ''
+      _.forEach(users, (user, userName) => {
+        if (user.own) {
+          if (this.playerNameMap[userName]) {
+            text += `${this.playerNameMap[userName]}\n`
+          } else {
+            text += `${userName}\n`
+          }
+        }
+      })
+      return text
+    },
     getRatingColor: function (rating, roundDown) {
       return roundDown ? _.floor(rating) : _.ceil(rating)
     },
@@ -140,7 +165,11 @@ export default {
       let text = ''
       _.forEach(users, (user, userName) => {
         if (user.rating) {
-          text += `${userName}: ${user.rating}\n`
+          if (this.playerNameMap[userName]) {
+            text += `${this.playerNameMap[userName]}: ${user.rating}\n`
+          } else {
+            text += `${userName}: ${user.rating}\n`
+          }
         }
       })
       return text
@@ -149,7 +178,11 @@ export default {
       let text = ''
       _.forEach(users, (user, userName) => {
         if (user.numplays) {
-          text += `${userName}: ${user.numplays}\n`
+          if (this.playerNameMap[userName]) {
+            text += `${this.playerNameMap[userName]}: ${user.numplays}\n`
+          } else {
+            text += `${userName}: ${user.numplays}\n`
+          }
         }
       })
       return text
@@ -180,6 +213,7 @@ export default {
     }
   },
   props: {
+    defaultAsc: {type: Boolean},
     defaultSort: {type: String},
     extFilters: { type: Object },
     games: { type: Object },
@@ -197,6 +231,7 @@ export default {
 
 .comment {
   text-align: left;
+  max-width: 50vh;
 }
 
 .rank, .numplays {

@@ -21,15 +21,16 @@ module.exports = {
   loading: { color: '#3B8070' },
   modules: [
     '@nuxtjs/axios',
-    '@nuxtjs/bootstrap-vue',
     '@nuxtjs/font-awesome',
-    '@nuxtjs/toast'
+    '@nuxtjs/toast',
+    'bootstrap-vue/nuxt'
   ],
   mode: 'spa',
   axios: {
     // proxyHeaders: false
   },
   toast: {
+    duration: 1500,
     iconPack: 'fontawesome',
     position: 'top-left'
   },

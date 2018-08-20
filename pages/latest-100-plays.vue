@@ -5,7 +5,7 @@
       <b-container v-if="!loading && !waitingForBGG" class="bv-example-row">
         <b-row>
           <b-col>
-            <v-table :games="items" :headers="tableHeader"></v-table>
+            <v-table :games="items" :headers="tableHeader" :default-asc="false" :default-sort="'date'"></v-table>
           </b-col>
         </b-row>
       </b-container>
@@ -52,13 +52,14 @@ export default {
           var x2js = new X2JS()
           var data = x2js.xml2js(res.data)
 
-          var items = []
+          var items = {}
           _.forEach(data.plays.play, (play) => {
-            items.push({
+            items[play._id] = {
+              comment: play.comments,
               date: play._date,
               id: play._id,
               name: play.item._name
-            })
+            }
           })
 
           this.$data.items = items
@@ -71,11 +72,12 @@ export default {
   },
   data () {
     return {
-      items: [],
+      items: {},
       loading: true,
       tableHeader: [
         {key: 'name', value: 'Name'},
-        {key: 'date', value: 'Date'}
+        {key: 'date', value: 'Date'},
+        {key: 'comment', value: 'Comment'}
       ],
       userId: cookie.get('username'),
       waitingForBGG: false
